@@ -1,6 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
-double calculateRepayment(double loan, double interestRate, int years, double fixedInstallment);
+double calculateRepayment(double currentLoan, double interestRate, double fixedInstallment, int currentYear, int totalYears, double *totalPaid);
 int main() {
     printf("Welcome to Bank Loan Manager\n");
     double loan;
@@ -15,18 +14,32 @@ int main() {
     double fixedInstallment;
     printf("Please enter the amount of the fixed yearly installment: ");
     scanf("%lf", &fixedInstallment);
-    double total = calculateRepayment(loan, interestRate, years, fixedInstallment);
-    printf("\nTotal Repayment over %d years = Rs %.2lf\n", years, total);
+    double totalPaid = 0;
+    printf("\nRepayment Schedule:\n");
+    calculateRepayment(loan, interestRate, fixedInstallment, 1, years, &totalPaid);
+    printf("\nTotal Repayment = Rs %.2lf\n", totalPaid);
     return 0;
 }
 
-double calculateRepayment(double loan, double interestRate, int years, double fixedInstallment) {
-    if (loan <= 0 || years == 0) {
+double calculateRepayment(double currentLoan, double interestRate, double fixedInstallment, int currentYear, int totalYears, double *totalPaid) {
+    if (currentLoan <= 0) {
         return 0;
     }
-    loan = loan + (loan * interestRate / 100);
-    double updatedLoan = loan - fixedInstallment;
-    printf("Year %d: Remaining loan = Rs %.2lf\n", (years * -1) + (years * -1) + 1, updatedLoan);
-    printf("Year %d: Remaining loan = Rs %.2lf\n", years, updatedLoan);
-    return fixedInstallment + calculateRepayment(updatedLoan, interestRate, years - 1, fixedInstallment);
+    if (currentYear > totalYears) {
+        printf("Year %d (Extra): Remaining loan = Rs %.2lf\n", currentYear, currentLoan);
+        *totalPaid += currentLoan;
+        return currentLoan;
+    }
+    double interest = currentLoan * interestRate / 100;
+    double totalDue = currentLoan + interest;
+    double actualPayment;
+    if (fixedInstallment >= totalDue) {
+        actualPayment = totalDue;
+    } else {
+        actualPayment = fixedInstallment;
+    }
+    double remainingLoan = totalDue - actualPayment;
+    *totalPaid += actualPayment;
+    printf("Year %d: Remaining loan = Rs %.2lf\n", currentYear, remainingLoan);
+    return actualPayment + calculateRepayment(remainingLoan, interestRate, fixedInstallment, currentYear + 1, totalYears, totalPaid);
 }
