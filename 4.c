@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <string.h>
+
 #define MAX_BOOKS 1000
-struct book{
+
+typedef struct {
     int id;
     int score;
     int access_time;
-};
-struct book shelf[MAX_BOOKS];
+} book;
+
+book shelf[MAX_BOOKS];
 int book_count = 0;
 int max_capacity;
 int global_time = 0;
@@ -37,6 +40,7 @@ void add_book(int id, int score) {
     if (index != -1) {
         shelf[index].score = score;
         shelf[index].access_time = global_time++;
+        printf("Book %d updated with popularity score %d\n", id, score);
         return;
     }
 
@@ -45,45 +49,82 @@ void add_book(int id, int score) {
         shelf[book_count].score = score;
         shelf[book_count].access_time = global_time++;
         book_count++;
+        printf("Book %d added with popularity score %d\n", id, score);
     } else {
         int old_index = find_oldest_book();
+        int old_id = shelf[old_index].id;
         shelf[old_index].id = id;
         shelf[old_index].score = score;
         shelf[old_index].access_time = global_time++;
+        printf("Book %d removed. Book %d added with popularity score %d\n", old_id, id, score);
     }
 }
 
-int access_book(int id) {
+void access_book(int id) {
     int index = find_book_index(id);
     if (index == -1) {
-        return -1;
+        printf("Book %d not found. Result: -1\n", id);
+        return;
     }
     shelf[index].access_time = global_time++;
-    return shelf[index].score;
+    printf("Book %d accessed. Popularity score: %d\n", id, shelf[index].score);
+}
+
+void display_all_books() {
+    printf("\nCurrent books on shelf:\n");
+    if (book_count == 0) {
+        printf("Shelf is empty\n");
+        return;
+    }
+    for (int i = 0; i < book_count; i++) {
+        printf("Book ID: %d, Popularity: %d, Last Access Time: %d\n", 
+               shelf[i].id, shelf[i].score, shelf[i].access_time);
+    }
 }
 
 int main() {
-    printf("Enter capacity and number of operations: ");
-    scanf("%d %d", &max_capacity, &book_count);
-    int q = book_count;
-    book_count = 0;
+    printf("Enter shelf capacity: ");
+    scanf("%d", &max_capacity);
+    printf("Shelf capacity set to %d books\n", max_capacity);
     
-    for (int i = 0; i < q; i++) {
-        char operation[10];
-        printf("Enter operation (ADD or ACCESS): ");
-        scanf("%s", operation);   
-        if (strcmp(operation, "ADD") == 0) {
-            int id, score;
-            printf("Enter book ID and popularity score: ");
-            scanf("%d %d", &id, &score);
-            add_book(id, score);
-        } else if (strcmp(operation, "ACCESS") == 0) {
-            int id;
-            printf("Enter book ID to access: ");
-            scanf("%d", &id);
-            int result = access_book(id);
-            printf("Result: %d\n", result);
+    int choice;
+    
+    while (1) {
+        printf("\n--- Library Shelf System ---\n");
+        printf("1. ADD book\n");
+        printf("2. ACCESS book\n");
+        printf("3. Display all books\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        
+        switch (choice) {
+            case 1: {
+                int id, score;
+                printf("Enter book ID: ");
+                scanf("%d", &id);
+                printf("Enter popularity score: ");
+                scanf("%d", &score);
+                add_book(id, score);
+                break;
+            }
+            case 2: {
+                int id;
+                printf("Enter book ID to access: ");
+                scanf("%d", &id);
+                access_book(id);
+                break;
+            }
+            case 3:
+                display_all_books();
+                break;
+            case 4:
+                printf("Exiting program. Goodbye!\n");
+                return 0;
+            default:
+                printf("Invalid choice. Please try again.\n");
         }
-    }   
+    }
+    
     return 0;
 }
